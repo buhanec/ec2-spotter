@@ -191,7 +191,8 @@ mkdir $NEWMNT
 #
 mv /sbin/init /sbin/init.backup
 cat >/sbin/init <<EOF11
-#!/bin/sh
+#!/usr/bin/env bash
+
 mount $DEVICE $NEWMNT
 [ ! -d $NEWMNT/$OLDMNT ] && mkdir -p $NEWMNT/$OLDMNT
 
