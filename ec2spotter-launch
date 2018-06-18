@@ -67,7 +67,7 @@ pip install awscli >> /root/log.txt 2>&1
 
 cd /root
 echo "cloning_file" >> /root/log.txt 2>&1
-git clone --depth=1 https://github.com/slavivanov/ec2-spotter.git
+git clone --depth=1 https://github.com/buhanec/ec2-spotter.git
 echo Got spotter scripts from github.
 
 cd ec2-spotter
