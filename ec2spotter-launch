@@ -82,7 +82,7 @@ cat >specs.tmp <<EOF
       "Ebs": {
         "DeleteOnTermination": true,
         "VolumeType": "gp2",
-        "VolumeSize": 4
+        "VolumeSize": 8
       }
     }
   ],
