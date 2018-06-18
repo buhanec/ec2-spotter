@@ -41,7 +41,7 @@ then
 fi
 
 cat >user-data.tmp <<EOF
-#!/bin/sh
+#!/usr/bin/env bash
 echo AWSAccessKeyId=$AWS_ACCESS_KEY > /root/.aws.creds
 echo AWSSecretKey=$AWS_SECRET_KEY >> /root/.aws.creds
 export TERM="linux"
