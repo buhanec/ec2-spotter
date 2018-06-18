@@ -6,7 +6,7 @@ if [ "$1" = "" ]; then echo "USER ERROR: please specify a configuration file"; e
 
 cd $(dirname $0)
 
-. $1 || exit -1
+source $1 || exit -1
 
 # New instance:
 # Desired launch zone
@@ -15,23 +15,12 @@ LAUNCH_ZONE=$ec2spotter_launch_zone
 LAUNCH_REGION=$(echo $LAUNCH_ZONE | sed -e 's/.$//')
 PUB_KEY=$ec2spotter_key_name
 
-# Existing Volume:
-# If no volume zone
-if [ "$ec2spotter_volume_zone" = "" ]
-then # Use instance zone
-	ec2spotter_volume_zone=$LAUNCH_ZONE
-fi
-
 # Name of volume (find it by name later)
 ROOT_VOL_NAME=$ec2spotter_volume_name
 # zone of volume (needed if different than instance zone)
 ROOT_ZONE=$ec2spotter_volume_zone
 # Region is Zone minus the last character
 ROOT_REGION=$(echo $ROOT_ZONE | sed -e 's/.$//')
-
-
-#echo "ROOT_VOL_NAME=${ROOT_VOL_NAME}; ROOT_ZONE=${ROOT_ZONE}; ROOT_REGION=${ROOT_REGION}; "
-#echo "LAUNCH_ZONE=${LAUNCH_ZONE}; LAUNCH_REGION=${LAUNCH_REGION}; PUB_KEY=${PUB_KEY}"
 
 AWS_ACCESS_KEY=`aws configure get aws_access_key_id`
 AWS_SECRET_KEY=`aws configure get aws_secret_access_key`

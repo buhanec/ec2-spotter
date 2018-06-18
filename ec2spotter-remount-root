@@ -54,7 +54,7 @@ export SPOT_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/avai
 export SPOT_REGION=${SPOT_ZONE::-1} # Get the region by stripping the last character of the ROOT_ZONE
 
 export AWS_CREDENTIAL_FILE=/root/.aws.creds
-. /root/.aws.creds
+source /root/.aws.creds
 export AWS_ACCESS_KEY=$AWSAccessKeyId
 export AWS_SECRET_KEY=$AWSSecretKey
 
