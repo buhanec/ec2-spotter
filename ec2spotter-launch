@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # "Phase 1" this is the user-facing script for launching a new spot istance
 

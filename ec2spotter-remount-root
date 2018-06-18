@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 # "Phase 2" this script is invoked inside of the spot VM at boot time to find the root volume.
 
 manual_invoke=1
