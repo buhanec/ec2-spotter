@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-apt-get update
-apt-get install -y jq
-apt-get install -y python-pip python-setuptools
-pip install awscli
-
