@@ -17,7 +17,7 @@ ZONE_URL = 'http://169.254.169.254/latest/meta-data/placement/availability-zone'
 
 instance_id = requests.get(INSTANCE_URL).text
 zone_id = requests.get(ZONE_URL).text
-region_name = instance_id[:-1]
+region_name = zone_id[:-1]
 volume_name = sys.argv[1]
 
 ec2 = boto3.client('ec2', region_name=region_name)
@@ -25,7 +25,8 @@ ec2 = boto3.client('ec2', region_name=region_name)
 # Allocate IP
 try:
     response = ec2.associate_address(AllocationId=sys.argv[2],
-                                     InstanceId=instance_id)
+                                     InstanceId=instance_id,
+                                     AllowReassociation=True)
 except IndexError:
     pass
 
