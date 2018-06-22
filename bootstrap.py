@@ -33,7 +33,7 @@ except IndexError:
 # Find Volume
 filters = [{'Name': 'tag-key', 'Values': ['Name']},
            {'Name': 'tag-value', 'Values': [volume_name]}]
-volumes = ec2.describe_volumes(Filters=filters, Region=region_name)
+volumes = ec2.describe_volumes(Filters=filters)  # TODO: handle x-region
 for volume in volumes['Volumes']:
     if volume['State'] == 'available':
         volume_id = volume['VolumeId']
