@@ -61,4 +61,4 @@ ec2.request_spot_instances(ImageId=PRE_BOOT_AMI,
                                'Groups': [SECURITY_GROUP_ID],
                                'AssociatePublicIpAddress': False
                            }],
-                           UserData=base64.b64encode(USER_DATA))
+                           UserData=base64.b64encode(USER_DATA.encode()))

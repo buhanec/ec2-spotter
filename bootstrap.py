@@ -81,8 +81,8 @@ if move_volume:
         time.sleep(10)
 
     # Remove old snapshot and volume
-    ec2.delete_volume(VolumeId=volume_id)
-    ec2.delete_snapshot(SnapshotId=snapshot_id)
+    # ec2.delete_volume(VolumeId=volume_id)
+    # ec2.delete_snapshot(SnapshotId=snapshot_id)
 
     # New volume is now the volume
     volume_id = new_volume_id
