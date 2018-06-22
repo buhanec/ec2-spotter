@@ -32,7 +32,7 @@ echo '[default]' > .aws/credentials
 echo 'aws_access_key_id = {CREDENTIALS.access_key}' > .aws/credentials
 echo 'aws_secret_access_key = {CREDENTIALS.secret_key}' > .aws/credentials
 
-export TERM="linux"
+export TERM='linux'
 
 apt-get update 
 apt-get install -y wget python3 python3-requests python3-psutil python3-boto3
@@ -42,23 +42,22 @@ wget https://raw.githubusercontent.com/buhanec/ec2-spotter/master/bootstrap.py
 ./bootstrap.py {VOLUME_NAME} {EIP_ID}
 '''
 
-ec2.request_spot_instances(ImageId=PRE_BOOT_AMI,
-                           InstanceType=INSTANCE_TYPE,
-                           KeyName=KEY_NAME,
-                           EbsOptimized=True,
-                           Placement={'AvailabilityZone': ZONE_ID},
-                           BlockDeviceMappings=[{
-                               'DeviceName': '/dev/sda1',
+ec2.request_spot_instances(LaunchSpecification={
+                             'ImageId': PRE_BOOT_AMI,
+                             'InstanceType': INSTANCE_TYPE,
+                             'KeyName': KEY_NAME,
+                             'EbsOptimized': True,
+                             'Placement': {'AvailabilityZone': ZONE_ID},
+                             'BlockDeviceMappings': [{
+                               'DeviceName' : '/dev/sda1',
                                'Ebs': {
-                                   'DeleteOnTermination': True,
-                                   'VolumeType': 'gp2',
-                                   'VolumeSize': 8
+                                 'VolumeSize': 8,
+                                 'DeleteOnTermination': True,
+                                 'VolumeType' : 'standard'
                                }
-                           }],
-                           NetworkInterfaces=[{
-                               'DeviceIndex': 0,
-                               'SubnetId': '',
-                               'Groups': [SECURITY_GROUP_ID],
-                               'AssociatePublicIpAddress': False
-                           }],
-                           UserData=base64.b64encode(USER_DATA.encode()))
+                             }],
+                             'UserData': base64.b64encode(USER_DATA.encode())
+                           },
+                           SpotPrice=INSTANCE_BID,
+                           Type='persistent',
+                           InstanceInterruptionBehavior='terminate')
