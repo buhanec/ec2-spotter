@@ -117,7 +117,7 @@ for dir in /dev /proc /sys /run; do
 done
 
 exec chroot . /sbin/init
-'''.format(**globals())  # I hate everything about Ubuntu
+'''.format(**globals()))  # I hate everything about Ubuntu
 
 os.chmod('/sbin/init', 777)
 
