@@ -117,7 +117,7 @@ for dir in /dev /proc /sys /run; do
 done
 
 exec chroot . /sbin/init
-'''
+''')
 
 os.chmod('/sbin/init', 777)
 
