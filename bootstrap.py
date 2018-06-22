@@ -39,7 +39,7 @@ for volume in volumes['Volumes']:
         move_volume = volume['AvailabilityZone'] != zone_id
         break
 else:
-    print(f'Could not find volume {volume_name!r}')
+    print('Could not find volume ' + repr(volume_name))
     sys.exit(1)
 
 # Move between availability zones
@@ -105,7 +105,7 @@ subprocess.run(('tune2fs', device, '-U', uuid.uuid4()))
 # Load up new /sbin/init
 os.remove('/sbin/init')
 with open('/sbin/init') as f:
-    f.write(f'''#!/usr/bin/env bash
+    f.write('''#!/usr/bin/env bash
 
 mount {device} /swapped
 cd /swapped
@@ -116,8 +116,8 @@ for dir in /dev /proc /sys /run; do
     mount --move old/${{dir}} ${{dir}}
 done
 
-exec chroot . /sbin/init 
-''')
+exec chroot . /sbin/init
+'''.format(**globals())  # I hate everything about Ubuntu
 
 os.chmod('/sbin/init', 777)
 
