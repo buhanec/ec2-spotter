@@ -89,8 +89,7 @@ if move_volume:
     volume_id = new_volume_id
 
 # Attach volume
-device = '/dev/xvdf1'
-ec2.attach_volume(Device=device[:-1],
+ec2.attach_volume(Device='/dev/sdf',
                   InstanceId=instance_id,
                   VolumeId=volume_id)
 while not [d for d in psutil.disk_partitions() if d.device == device]:
@@ -108,17 +107,17 @@ os.remove('/sbin/init')
 with open('/sbin/init') as f:
     f.write('''#!/usr/bin/env bash
 
-mount {device} /swapped
+mount /dev/xvdf1 /swapped
 cd /swapped
 mkdir old
 pivot_root . old
 
 for dir in /dev /proc /sys /run; do
-    mount --move old/${{dir}} ${{dir}}
+    mount --move old/${dir} ${dir}
 done
 
 exec chroot . /sbin/init
-'''.format(**globals()))  # I hate everything about Ubuntu
+'''
 
 os.chmod('/sbin/init', 777)
 
