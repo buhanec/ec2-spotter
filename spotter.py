@@ -21,7 +21,7 @@ PRE_BOOT_AMI = 'ami-c7e0c82c'
 KEY_NAME = 'Alen new'
 
 INSTANCE_TYPE = 'c5.xlarge'
-INSTANCE_BID = 0.10
+INSTANCE_BID = '0.10'
 
 USER_DATA = f'''#!/usr/bin/env bash
 
@@ -56,7 +56,7 @@ ec2.request_spot_instances(LaunchSpecification={
                                  'VolumeType' : 'standard'
                                }
                              }],
-                             'UserData': base64.b64encode(USER_DATA.encode())
+                             'UserData': base64.b64encode(USER_DATA.encode()).decode()
                            },
                            SpotPrice=INSTANCE_BID,
                            Type='persistent',
