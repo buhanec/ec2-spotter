@@ -7,7 +7,7 @@ import base64
 import boto3
 from botocore.credentials import Credentials
 
-ec2 = boto3.resource('ec2')
+ec2 = boto3.client('ec2')
 
 CREDENTIALS = boto3.DEFAULT_SESSION.get_credentials()  # type: Credentials
 

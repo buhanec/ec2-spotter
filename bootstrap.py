@@ -20,7 +20,7 @@ zone_id = requests.get(ZONE_URL).text
 region_name = instance_id[:-1]
 volume_name = sys.argv[1]
 
-ec2 = boto3.resource('ec2', region_name=region_name)
+ec2 = boto3.client('ec2', region_name=region_name)
 
 # Allocate IP
 try:
