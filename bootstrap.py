@@ -42,8 +42,9 @@ while volume is None:
         print('Could not find any volumes for ' + repr(volume_name))
         sys.exit(1)
 
-    if any(volume['State'] == 'available' for volume in volumes['Volumes']):
-        break
+    for volume in volumes['Volumes']:
+        if volume['State'] == 'available':
+            break
 
     print('Waiting 10s, all volumes with name', repr(volume_name), 'in use...')
     time.sleep(10)
