@@ -132,8 +132,6 @@ exec chroot . /sbin/init'''.format(**globals()))  # bring me home to 3.6+
 
 os.chmod('/sbin/init', 777)
 
-sys.exit(0)
-
 # Clean up credentials
 os.unlink(os.path.expandvars('$HOME/.aws/credentials'))
 
