@@ -103,8 +103,6 @@ while not ec2.describe_volumes(VolumeIds=[volume['VolumeId']])['Volumes'][0]['St
     time.sleep(10)
 time.sleep(5)
 
-# Clean up credentials
-os.unlink(os.path.expandvars('$HOME/.aws/credentials'))
 
 # FUCK SHIT UP
 instance_gen = int(requests.get(INSTANCE_TYPE).text[1])
@@ -133,5 +131,10 @@ done
 exec chroot . /sbin/init'''.format(**globals()))  # bring me home to 3.6+
 
 os.chmod('/sbin/init', 777)
+
+sys.exit(0)
+
+# Clean up credentials
+os.unlink(os.path.expandvars('$HOME/.aws/credentials'))
 
 subprocess.run(('shutdown', '-r', 'now'))
