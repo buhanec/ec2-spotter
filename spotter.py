@@ -9,10 +9,6 @@ from botocore.credentials import Credentials
 
 ec2 = boto3.client('ec2')
 
-instance = ec2.Instance('i-0cbcf226cfac65491')
-
-users = {'finkregh', 'bobferret', 'sopling', 'alen_', 'zavapl'}
-
 CREDENTIALS = boto3.DEFAULT_SESSION.get_credentials()  # type: Credentials
 
 ZONE_ID = 'eu-central-1b'
@@ -39,7 +35,7 @@ echo 'aws_secret_access_key = {CREDENTIALS.secret_key}' >> .aws/credentials
 export TERM="linux"
 
 apt-get update 
-apt-get install -y wget python3 python3-requests python3-psutil python3-boto3
+apt-get install -y wget python3 python3-requests python3-boto3
 
 wget https://raw.githubusercontent.com/buhanec/ec2-spotter/master/bootstrap.py
 
