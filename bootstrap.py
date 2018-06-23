@@ -116,14 +116,15 @@ subprocess.run(('e2fsck', device, '-y'))
 subprocess.run(('tune2fs', device, '-U', str(uuid.uuid4())))
 
 # Load up new /sbin/init
-# os.remove('/sbin/init')
-with open('/root/init', 'w') as f:
+os.remove('/sbin/init')
+with open('/sbin/init', 'w') as f:
     f.write('''#!/usr/bin/env bash
 
+mkdir -p /swapped
 mount {device} /swapped
-cd /swapped
-mkdir old
-pivot_root . old
+mkdir -p /swapped/old
+
+pivot_root /swapped /swapped/old
 
 for dir in /dev /proc /sys /run; do
     mount --move old/$dir $dir
@@ -131,6 +132,6 @@ done
 
 exec chroot . /sbin/init'''.format(**globals()))  # bring me home to 3.6+
 
-# os.chmod('/sbin/init', 777)
+os.chmod('/sbin/init', 777)
 
-# subprocess.run(('shutdown', '-r', 'now'))
+subprocess.run(('shutdown', '-r', 'now'))
