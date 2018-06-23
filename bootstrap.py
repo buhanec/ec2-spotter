@@ -9,7 +9,6 @@ import time
 import uuid
 
 import boto3
-import psutil
 import requests
 
 INSTANCE_URL = 'http://169.254.169.254/latest/meta-data/instance-id'
@@ -32,23 +31,28 @@ except IndexError:
     pass
 
 # Find Volume
-filters = [{'Name': 'tag-key', 'Values': ['Name']},
-           {'Name': 'tag-value', 'Values': [volume_name]}]
-volumes = ec2.describe_volumes(Filters=filters)  # TODO: handle x-region
-for volume in volumes['Volumes']:
-    if volume['State'] == 'available':
-        volume_id = volume['VolumeId']
-        move_volume = volume['AvailabilityZone'] != zone_id
+volume = None
+move_volume = False
+while volume is None:
+    filters = [{'Name': 'tag-key', 'Values': ['Name']},
+               {'Name': 'tag-value', 'Values': [volume_name]}]
+    volumes = ec2.describe_volumes(Filters=filters)  # TODO: handle x-region
+
+    if not len(volumes['Volumes']):
+        print('Could not find any volumes for ' + repr(volume_name))
+        sys.exit(1)
+
+    if any(volume['State'] == 'available' for volume in volumes['Volumes']):
         break
-else:
-    print('Could not find volume ' + repr(volume_name))
-    sys.exit(1)
+
+    print('Waiting 10s, all volumes with name', repr(volume_name), 'in use...')
+    time.sleep(10)
 
 # Move between availability zones
-if move_volume:
+if volume['AvailabilityZone'] != zone_id:
     print('Moving snapshot')
     # Create snapshot of current volume
-    snapshot_id = ec2.create_snapshot(VolumeId=volume_id).snapshot_id
+    snapshot_id = ec2.create_snapshot(VolumeId=volume['VolumeId']).snapshot_id
     while True:
         filters = [{'Name': 'tag-key', 'Values': ['State']},
                    {'Name': 'tag-value', 'Values': ['completed']}]
@@ -59,23 +63,23 @@ if move_volume:
         time.sleep(10)
 
     # Create new volume
-    new_volume_id = ec2.create_volume(AvailabilityZone=zone_id,
-                                      Encrypted=volume['Encrypted'],
-                                      Iops=volume['Iops'],
-                                      KmsKeyId=volume['KmsKeyId'],
-                                      Size=volume['Size'],
-                                      SnapshotId=snapshot_id,
-                                      VolumeType=volume['VolumeType'],
-                                      TagSpecifications=[
-                                          {
-                                              'ResourceType': 'volume',
-                                              'Tags': volume['Tags']
-                                          },
-                                      ])['VolumeId']
+    new_volume = ec2.create_volume(AvailabilityZone=zone_id,
+                                   Encrypted=volume['Encrypted'],
+                                   Iops=volume['Iops'],
+                                   KmsKeyId=volume['KmsKeyId'],
+                                   Size=volume['Size'],
+                                   SnapshotId=snapshot_id,
+                                   VolumeType=volume['VolumeType'],
+                                   TagSpecifications=[
+                                       {
+                                           'ResourceType': 'volume',
+                                           'Tags': volume['Tags']
+                                       },
+                                   ])
     while True:
         filters = [{'Name': 'tag-key', 'Values': ['State']},
                    {'Name': 'tag-value', 'Values': ['available']}]
-        volumes = ec2.describe_volumes(VolumeIds=[new_volume_id],
+        volumes = ec2.describe_volumes(VolumeIds=[new_volume['VolumeId']],
                                        Filters=filters)
         if volumes['Volumes']:
             break
@@ -87,15 +91,16 @@ if move_volume:
     # ec2.delete_snapshot(SnapshotId=snapshot_id)
 
     # New volume is now the volume
-    volume_id = new_volume_id
+    volume = new_volume
 
 # Attach volume
 ec2.attach_volume(Device='/dev/sdf',
                   InstanceId=instance_id,
-                  VolumeId=volume_id)
-while not ec2.describe_volumes(VolumeIds=[volume_id])['Volumes'][0]['State'] == 'in-use':
+                  VolumeId=volume['VolumeId'])
+while not ec2.describe_volumes(VolumeIds=[volume['VolumeId']])['Volumes'][0]['State'] == 'in-use':
     print('Waiting 10s for volume to be in use...')
     time.sleep(10)
+time.sleep(5)
 
 # Clean up credentials
 os.unlink(os.path.expandvars('$HOME/.aws/credentials'))
@@ -106,6 +111,7 @@ instance_gen = int(requests.get(INSTANCE_TYPE).text[1])
 device = '/dev/nvme1n1p1' if instance_gen == 5 else '/dev/xvdf1'
 
 # Ready for the swap
+subprocess.run(('e2fsck', device, '-y'))
 subprocess.run(('tune2fs', device, '-U', str(uuid.uuid4())))
 
 # Load up new /sbin/init
