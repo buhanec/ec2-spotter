@@ -56,6 +56,7 @@ ec2.request_spot_instances(LaunchSpecification={
                                  'VolumeType' : 'standard'
                                }
                              }],
+                             'SecurityGroupIds': [SECURITY_GROUP_ID]
                              'UserData': base64.b64encode(USER_DATA.encode()).decode()
                            },
                            SpotPrice=INSTANCE_BID,

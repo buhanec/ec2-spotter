@@ -116,8 +116,7 @@ for dir in /dev /proc /sys /run; do
     mount --move old/${dir} ${dir}
 done
 
-exec chroot . /sbin/init
-''')
+exec chroot . /sbin/init''')
 
 os.chmod('/sbin/init', 777)
 
