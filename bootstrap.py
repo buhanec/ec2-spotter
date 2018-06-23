@@ -13,6 +13,7 @@ import psutil
 import requests
 
 INSTANCE_URL = 'http://169.254.169.254/latest/meta-data/instance-id'
+INSTANCE_TYPE = 'http://169.254.169.254/latest/meta-data/instance-type'
 ZONE_URL = 'http://169.254.169.254/latest/meta-data/placement/availability-zone'
 
 instance_id = requests.get(INSTANCE_URL).text
@@ -92,32 +93,37 @@ if move_volume:
 ec2.attach_volume(Device='/dev/sdf',
                   InstanceId=instance_id,
                   VolumeId=volume_id)
-while not [d for d in psutil.disk_partitions() if d.device == device]:
-    print('Waiting 10s for volume to attach...')
+while not ec2.describe_volumes(VolumeIds=[volume_id])['Volumes'][0]['State'] == 'in-use':
+    print('Waiting 10s for volume to be in use...')
     time.sleep(10)
 
 # Clean up credentials
-os.unlink('$HOME/.aws/credentials')
+os.unlink(os.path.expandvars('$HOME/.aws/credentials'))
+
+# FUCK SHIT UP
+instance_gen = int(requests.get(INSTANCE_TYPE).text[1])
+
+device = '/dev/nvme1n1p1' if instance_gen == 5 else '/dev/xvdf1'
 
 # Ready for the swap
-subprocess.run(('tune2fs', device, '-U', uuid.uuid4()))
+subprocess.run(('tune2fs', device, '-U', str(uuid.uuid4())))
 
 # Load up new /sbin/init
-os.remove('/sbin/init')
-with open('/sbin/init') as f:
+# os.remove('/sbin/init')
+with open('/root/init', 'w') as f:
     f.write('''#!/usr/bin/env bash
 
-mount /dev/xvdf1 /swapped
+mount {device} /swapped
 cd /swapped
 mkdir old
 pivot_root . old
 
 for dir in /dev /proc /sys /run; do
-    mount --move old/${dir} ${dir}
+    mount --move old/$dir $dir
 done
 
-exec chroot . /sbin/init''')
+exec chroot . /sbin/init'''.format(**globals()))  # bring me home to 3.6+
 
-os.chmod('/sbin/init', 777)
+# os.chmod('/sbin/init', 777)
 
-subprocess.run(('shutdown', '-r', 'now'))
+# subprocess.run(('shutdown', '-r', 'now'))

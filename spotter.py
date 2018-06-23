@@ -29,8 +29,8 @@ cd /root
 
 mkdir -p .aws
 echo '[default]' > .aws/credentials
-echo 'aws_access_key_id = {CREDENTIALS.access_key}' > .aws/credentials
-echo 'aws_secret_access_key = {CREDENTIALS.secret_key}' > .aws/credentials
+echo 'aws_access_key_id = {CREDENTIALS.access_key}' >> .aws/credentials
+echo 'aws_secret_access_key = {CREDENTIALS.secret_key}' >> .aws/credentials
 
 export TERM='linux'
 
@@ -42,23 +42,23 @@ wget https://raw.githubusercontent.com/buhanec/ec2-spotter/master/bootstrap.py
 ./bootstrap.py {VOLUME_NAME} {EIP_ID}
 '''
 
-ec2.request_spot_instances(LaunchSpecification={
-                             'ImageId': PRE_BOOT_AMI,
-                             'InstanceType': INSTANCE_TYPE,
-                             'KeyName': KEY_NAME,
-                             'EbsOptimized': True,
-                             'Placement': {'AvailabilityZone': ZONE_ID},
-                             'BlockDeviceMappings': [{
-                               'DeviceName' : '/dev/sda1',
-                               'Ebs': {
-                                 'VolumeSize': 8,
-                                 'DeleteOnTermination': True,
-                                 'VolumeType' : 'standard'
-                               }
-                             }],
-                             'SecurityGroupIds': [SECURITY_GROUP_ID]
-                             'UserData': base64.b64encode(USER_DATA.encode()).decode()
-                           },
-                           SpotPrice=INSTANCE_BID,
-                           Type='persistent',
-                           InstanceInterruptionBehavior='terminate')
+ec2.request_spot_instance(ImageId=PRE_BOOT_AMI,
+                          InstanceType=INSTANCE_TYPE,
+                          KeyName=KEY_NAME,
+                          EbsOptimized=True,
+                          Placement={'AvailabilityZone': ZONE_ID},
+                          BlockDeviceMappings=[{
+                              'DeviceName': '/dev/sda1',
+                              'Ebs': {
+                                  'DeleteOnTermination': True,
+                                  'VolumeType': 'gp2',
+                                  'VolumeSize': 8
+                              }
+                          }],
+                          NetworkInterfaces=[{
+                              'DeviceIndex': 0,
+                              'SubnetId': '',
+                              'Groups': [SECURITY_GROUP_ID],
+                              'AssociatePublicIpAddress': False
+                          }],
+                          UserData=base64.b64encode(USER_DATA))
