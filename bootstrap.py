@@ -106,7 +106,7 @@ ec2.attach_volume(Device='/dev/sdf',
 while not ec2.describe_volumes(VolumeIds=[volume['VolumeId']])['Volumes'][0]['State'] == 'in-use':
     print('Waiting 10s for volume to be in use...')
     time.sleep(10)
-time.sleep(5)
+time.sleep(10)
 
 
 # FUCK SHIT UP
@@ -137,6 +137,6 @@ exec chroot . /sbin/init'''.format(**globals()))  # bring me home to 3.6+
 os.chmod('/sbin/init', 777)
 
 # Clean up credentials
-os.unlink('/root/.aws/credentials')
+# os.unlink('/root/.aws/credentials')
 
-subprocess.run(('shutdown', '-r', 'now'))
+# subprocess.run(('shutdown', '-r', 'now'))
