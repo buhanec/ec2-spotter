@@ -112,10 +112,7 @@ time.sleep(5)
 # FUCK SHIT UP
 print('[4] Preparing volume')
 instance_gen = int(requests.get(INSTANCE_TYPE).text[1])
-
 device = '/dev/nvme1n1p1' if instance_gen == 5 else '/dev/xvdf1'
-
-# Ready for the swap
 subprocess.run(('e2fsck', device, '-y'))
 subprocess.run(('tune2fs', device, '-U', str(uuid.uuid4())))
 
