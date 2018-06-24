@@ -28,8 +28,9 @@ try:
     response = ec2.associate_address(AllocationId=sys.argv[2],
                                      InstanceId=instance_id,
                                      AllowReassociation=True)
+    print('    ... allocated')
 except IndexError:
-    pass
+    print('    ... no need to allocate')
 
 # Find Volume
 print('[1] Finding volume')
@@ -41,7 +42,7 @@ while volume is None:
     volumes = ec2.describe_volumes(Filters=filters)  # TODO: handle x-region
 
     if not len(volumes['Volumes']):
-        print('Could not find any volumes for ' + repr(volume_name))
+        print('    ... no volumes with name', repr(volume_name))
         sys.exit(1)
 
     for volume in volumes['Volumes']:
@@ -49,13 +50,14 @@ while volume is None:
             break
 
     if volume is None:
-      print('Waiting 10s, all volumes with name', repr(volume_name), 'in use...')
+      print('    ... all volumes with name', repr(volume_name), 'in use')
       time.sleep(10)
+print('    ... found volume with name', repr(volume_name), 'to be', repr(volume['VolumeId']))
 
 # Move between availability zones
 print('[2] Moving availability zones')
 if volume['AvailabilityZone'] != zone_id:
-    print('Moving snapshot')
+    print('    ... moving snapshot from', repr(volume['AvailabilityZone']), 'to', repr(zone_id))
     # Create snapshot of current volume
     snapshot_id = ec2.create_snapshot(VolumeId=volume['VolumeId']).snapshot_id
     while True:
@@ -64,7 +66,7 @@ if volume['AvailabilityZone'] != zone_id:
         snapshots = ec2.describe_snapshots(SnapshotIds=[snapshot_id])
         if snapshots['Snapshots']:
             break
-        print('Waiting 10s before checking if snapshot completed...')
+        print('    ... waiting for snapshop')
         time.sleep(10)
 
     # Create new volume
@@ -88,15 +90,15 @@ if volume['AvailabilityZone'] != zone_id:
                                        Filters=filters)
         if volumes['Volumes']:
             break
-        print('Waiting 10s before checking if volume available...')
+        print('    ... waiting for volume')
         time.sleep(10)
-
     # Remove old snapshot and volume
     # ec2.delete_volume(VolumeId=volume_id)
     # ec2.delete_snapshot(SnapshotId=snapshot_id)
 
     # New volume is now the volume
     volume = new_volume
+print('    ... done')
 
 # Attach volume
 print('[3] Attaching volume')
@@ -104,17 +106,20 @@ ec2.attach_volume(Device='/dev/sdf',
                   InstanceId=instance_id,
                   VolumeId=volume['VolumeId'])
 while not ec2.describe_volumes(VolumeIds=[volume['VolumeId']])['Volumes'][0]['State'] == 'in-use':
-    print('Waiting 10s for volume to be in use...')
+    print('    ... waiting')
     time.sleep(10)
 time.sleep(10)
+print('    ... done')
 
 
 # FUCK SHIT UP
 print('[4] Preparing volume')
 instance_gen = int(requests.get(INSTANCE_TYPE).text[1])
 device = '/dev/nvme1n1p1' if instance_gen == 5 else '/dev/xvdf1'
+print('    ... instance gen', instance_gen, 'has device', device)
 subprocess.run(('e2fsck', device, '-y'))
 subprocess.run(('tune2fs', device, '-U', str(uuid.uuid4())))
+print('    ... done')
 
 # Load up new /sbin/init
 print('[5] Rewriting /sbin/init')
@@ -137,6 +142,6 @@ exec chroot . /sbin/init'''.format(**globals()))  # bring me home to 3.6+
 os.chmod('/sbin/init', 777)
 
 # Clean up credentials
-# os.unlink('/root/.aws/credentials')
+os.unlink('/root/.aws/credentials')
 
-# subprocess.run(('shutdown', '-r', 'now'))
+subprocess.run(('shutdown', '-r', 'now'))
