@@ -23,6 +23,7 @@ volume_name = sys.argv[1]
 ec2 = boto3.client('ec2', region_name=region_name)
 
 # Allocate IP
+print('[0] Allocating IP')
 try:
     response = ec2.associate_address(AllocationId=sys.argv[2],
                                      InstanceId=instance_id,
@@ -31,6 +32,7 @@ except IndexError:
     pass
 
 # Find Volume
+print('[1] Finding volume')
 volume = None
 move_volume = False
 while volume is None:
@@ -46,10 +48,12 @@ while volume is None:
         if volume['State'] == 'available':
             break
 
-    print('Waiting 10s, all volumes with name', repr(volume_name), 'in use...')
-    time.sleep(10)
+    if volume is None:
+      print('Waiting 10s, all volumes with name', repr(volume_name), 'in use...')
+      time.sleep(10)
 
 # Move between availability zones
+print('[2] Moving availability zones')
 if volume['AvailabilityZone'] != zone_id:
     print('Moving snapshot')
     # Create snapshot of current volume
@@ -95,6 +99,7 @@ if volume['AvailabilityZone'] != zone_id:
     volume = new_volume
 
 # Attach volume
+print('[3] Attaching volume')
 ec2.attach_volume(Device='/dev/sdf',
                   InstanceId=instance_id,
                   VolumeId=volume['VolumeId'])
@@ -105,6 +110,7 @@ time.sleep(5)
 
 
 # FUCK SHIT UP
+print('[4] Preparing volume')
 instance_gen = int(requests.get(INSTANCE_TYPE).text[1])
 
 device = '/dev/nvme1n1p1' if instance_gen == 5 else '/dev/xvdf1'
@@ -114,7 +120,8 @@ subprocess.run(('e2fsck', device, '-y'))
 subprocess.run(('tune2fs', device, '-U', str(uuid.uuid4())))
 
 # Load up new /sbin/init
-os.remove('/sbin/init')
+print('[5] Rewriting /sbin/init')
+os.unlink('/sbin/init')
 with open('/sbin/init', 'w') as f:
     f.write('''#!/usr/bin/env bash
 
@@ -133,6 +140,6 @@ exec chroot . /sbin/init'''.format(**globals()))  # bring me home to 3.6+
 os.chmod('/sbin/init', 777)
 
 # Clean up credentials
-os.unlink(os.path.expandvars('$HOME/.aws/credentials'))
+os.unlink('/root/.aws/credentials')
 
 subprocess.run(('shutdown', '-r', 'now'))

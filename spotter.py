@@ -20,8 +20,8 @@ PRE_BOOT_AMI = 'ami-c7e0c82c'
 
 KEY_NAME = 'Alen new'
 
-INSTANCE_TYPE = 'c4.xlarge'
-INSTANCE_BID = '0.10'
+INSTANCE_TYPE = 'c4.large'
+INSTANCE_BID = '0.05'
 
 USER_DATA = f'''#!/usr/bin/env bash
 
