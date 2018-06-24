@@ -143,6 +143,6 @@ exec chroot . /sbin/init
 os.chmod('/sbin/init', 777)
 
 # Clean up credentials
-# os.unlink('/root/.aws/credentials')
+os.unlink('/root/.aws/credentials')
 
-# subprocess.run(('shutdown', '-r', 'now'))
+subprocess.run(('shutdown', '-r', 'now'))
