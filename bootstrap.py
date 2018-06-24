@@ -111,7 +111,6 @@ while not ec2.describe_volumes(VolumeIds=[volume['VolumeId']])['Volumes'][0]['St
 time.sleep(10)
 print('    ... done')
 
-
 # FUCK SHIT UP
 print('[4] Preparing volume')
 instance_gen = int(requests.get(INSTANCE_TYPE).text[1])
@@ -119,6 +118,7 @@ device = '/dev/nvme1n1p1' if instance_gen == 5 else '/dev/xvdf1'
 print('    ... instance gen', instance_gen, 'has device', device)
 subprocess.run(('e2fsck', device, '-y'))
 subprocess.run(('tune2fs', device, '-U', str(uuid.uuid4())))
+os.makedirs('/swapped', exist_ok=True)
 print('    ... done')
 
 # Load up new /sbin/init
@@ -127,11 +127,11 @@ os.unlink('/sbin/init')
 with open('/sbin/init', 'w') as f:
     f.write('''#!/usr/bin/env bash
 
-mkdir -p /swapped
 mount {device} /swapped
 mkdir -p /swapped/old
 
-pivot_root /swapped /swapped/old
+cd /swapped
+pivot_root . ./old
 
 for dir in /dev /proc /sys /run; do
     mount --move old/$dir $dir
