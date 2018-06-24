@@ -41,7 +41,7 @@ wget https://raw.githubusercontent.com/buhanec/ec2-spotter/master/bootstrap.py
 
 chmod +x bootstrap.py
 
-./bootstrap.py {VOLUME_NAME} {EIP_ID} > /root/log.txt
+./bootstrap.py {VOLUME_NAME} {EIP_ID} > log.txt
 '''
 
 ec2.request_spot_instances(LaunchSpecification={

@@ -137,7 +137,8 @@ for dir in /dev /proc /sys /run; do
     mount --move old/$dir $dir
 done
 
-exec chroot . /sbin/init'''.format(**globals()))  # bring me home to 3.6+
+exec chroot . /sbin/init
+'''.format(**globals()))  # bring me home to 3.6+
 
 os.chmod('/sbin/init', 777)
 
